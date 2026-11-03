@@ -1,48 +1,47 @@
 # Trabalho P2 — Delivery | Sabor da Casa
 
-Painel de restaurante desenvolvido com React, TypeScript e Vite para o Trabalho P2 de Laboratório de Programação Front End (Engenharia de Software, 2026.2).
+Painel do restaurante parceiro de um app de delivery, desenvolvido com React, TypeScript e Vite para o Trabalho P2 de Laboratório de Programação Front End (Engenharia de Software, 2026.2 — Universidade de Vassouras).
+
+O dono do restaurante entra com login, vê os pratos do cardápio, cadastra pratos novos, edita e exclui. A interface foi pensada para uso no celular.
 
 ## Integrante
 
-- **Nome completo:** PREENCHER COM SEU NOME COMPLETO
+- Leandro de Oliveira Bravo Monteiro
 
-> O trabalho foi desenvolvido individualmente. A instrução original descreve uma entrega em dupla e solicita commits dos dois integrantes. Não invente um segundo integrante ou commits: confirme com a professora como registrar a entrega individual.
+## Repositório
+
+https://github.com/LeoBravoDev/p2-delivery
 
 ## Tecnologias
 
 - React + TypeScript
 - Vite
-- CSS responsivo
-- DummyJSON API
+- React Router
+- Context API (autenticação)
+- DummyJSON API (`fetch`)
 - Lucide React (ícones)
+- CSS responsivo
 
 ## Como executar
 
-Requisitos: Node.js LTS e npm instalados.
+Requisitos: Node.js LTS e npm.
 
-1. Extraia o ZIP para uma pasta.
-2. Abra a pasta `p2-delivery` no VS Code.
-3. No terminal, instale as dependências:
+```bash
+npm install
+npm run dev
+```
 
-   ```bash
-   npm install
-   ```
+Abra o endereço mostrado no terminal (normalmente `http://localhost:5173`).
 
-4. Confira o arquivo `.env` na raiz. Ele deve conter:
+O arquivo `.env` na raiz do projeto deve conter:
 
-   ```env
-   VITE_API_URL=https://dummyjson.com
-   ```
+```env
+VITE_API_URL=https://dummyjson.com
+```
 
-5. Inicie o servidor:
+Depois de criar ou editar o `.env`, reinicie o `npm run dev`.
 
-   ```bash
-   npm run dev
-   ```
-
-6. Abra no navegador o endereço mostrado no terminal, normalmente `http://localhost:5173`.
-
-Para verificar a compilação de produção:
+Para gerar a versão de produção:
 
 ```bash
 npm run build
@@ -53,53 +52,38 @@ npm run build
 - Usuário: `emilys`
 - Senha: `emilyspass`
 
-As credenciais ficam preenchidas na tela de entrada para facilitar a demonstração. O token é guardado em `sessionStorage` durante a sessão e enviado como `Authorization: Bearer <token>` às chamadas de cardápio.
+As credenciais já vêm preenchidas na tela de entrada. O token (`accessToken`) é guardado em `sessionStorage` e enviado como `Authorization: Bearer <token>`.
 
 ## Funcionalidades
 
-- Login pela rota `POST /auth/login`, com tratamento de erro.
-- Cardápio protegido e botão para sair.
-- Listagem com foto, nome, cozinha, tempo e preço calculado.
-- Busca por nome usando `/recipes/search`.
-- Cadastro, edição e exclusão com confirmação.
-- Componentes reutilizáveis `RecipeCard`, `RecipeModal` e `EmptyState`, com props.
-- Estados de carregamento, erro com status HTTP e lista vazia.
-- Interface responsiva, incluindo telas estreitas de 375 px.
-- Atualização do estado local após alterações, porque o DummyJSON apenas simula operações de escrita.
+- Login com `POST /auth/login`, token guardado no `AuthContext` e tratamento de erro.
+- Cardápio em rota protegida (React Router) e botão **Sair**.
+- Conferência do usuário logado com `GET /auth/me`.
+- Lista de pratos com foto, nome, cozinha e preço.
+- Busca por nome.
+- Cadastro, edição e exclusão (com confirmação) de pratos.
+- Estados de carregando, erro (com status HTTP e mensagem na tela) e lista vazia.
+- Layout responsivo, utilizável em 375 px sem rolagem lateral.
+
+## Estrutura
+
+```
+src/
+  services/api.ts          chamadas à API com fetch, usando VITE_API_URL
+  context/AuthContext.tsx  token e usuário logado
+  components/              RecipeCard, RecipeModal, EmptyState, ProtectedRoute
+  pages/                   LoginPage, MenuPage
+  utils/errors.ts          mensagens de erro amigáveis
+```
 
 ## Regra de preço
 
-`Preço = R$ 15,00 + R$ 0,50 × (preparo em minutos + cozimento em minutos)`
+A API não tem preço, então ele é calculado no front:
 
-## Observação sobre a API
+`preço = R$ 15,00 + R$ 0,50 × (preparo + cozimento, em minutos)`
 
-O DummyJSON não persiste as alterações. Um prato criado recebe ID 51 e só existe na lista local até recarregar a aplicação. Para pratos que geram HTTP 404 ao editar/excluir, o painel apresenta um aviso e mantém a atualização local para que a demonstração continue funcionando.
+## Observações sobre a API
 
-## GitHub
+O DummyJSON apenas simula criar, editar e excluir: nada é gravado no servidor. Por isso o app atualiza o estado local depois de salvar, e ao recarregar a página a lista volta ao que a API tem.
 
-**Link do repositório:** PREENCHER DEPOIS DE CRIAR O REPOSITÓRIO
-
-Para publicar:
-1. Crie um repositório vazio no GitHub.
-2. Abra o terminal nesta pasta e execute:
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Cria painel de delivery com React e TypeScript"
-   git branch -M main
-   git remote add origin URL_DO_SEU_REPOSITORIO
-   git push -u origin main
-   ```
-
-3. Cole o link do repositório acima e salve o README.
-
-## Checklist de entrega
-
-- [ ] Preencher nome completo no README.
-- [ ] Criar o repositório GitHub e colocar o link no README.
-- [ ] Executar `npm install`.
-- [ ] Executar `npm run dev` e testar login, busca, cadastro, edição e exclusão.
-- [ ] Executar `npm run build`.
-- [ ] Conferir em tela estreita, sem rolagem horizontal.
-- [ ] Enviar o ZIP sem `node_modules` no AVA, conforme a orientação da professora.
+Todo prato criado recebe `id` 51 e não existe de verdade no servidor. Ao editar ou excluir esse prato, a API responde **404**; o app mostra uma mensagem de erro clara na tela e aplica a mudança apenas na lista local.
