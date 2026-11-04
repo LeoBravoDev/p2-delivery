@@ -1,6 +1,6 @@
 import { Clock3, Pencil, Trash2, UtensilsCrossed } from 'lucide-react'
 import type { Recipe } from '../types'
-import { getPrice } from '../api'
+import { getPrice } from '../services/api'
 
 interface RecipeCardProps {
   recipe: Recipe

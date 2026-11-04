@@ -1,8 +1,8 @@
-import type { Recipe, RecipeFormData } from './types'
+import type { ApiRecipe, Recipe, RecipeFormData } from '../types'
 
 const API_URL = (import.meta.env.VITE_API_URL || 'https://dummyjson.com').replace(/\/$/, '')
 
-type LoginResponse = {
+export type LoginResponse = {
   accessToken?: string
   token?: string
   id: number
@@ -41,6 +41,10 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return response.json() as Promise<T>
 }
 
+function toRecipe(item: ApiRecipe): Recipe {
+  return { ...item, uid: `api-${item.id}` }
+}
+
 export async function login(username: string, password: string): Promise<{ token: string; user: LoginResponse }> {
   const user = await request<LoginResponse>('/auth/login', {
     method: 'POST',
@@ -51,34 +55,40 @@ export async function login(username: string, password: string): Promise<{ token
   return { token, user }
 }
 
-export async function getRecipes(token: string): Promise<Recipe[]> {
-  const data = await request<{ recipes: Recipe[] }>('/recipes?limit=30&skip=0&select=id,name,cuisine,image,prepTimeMinutes,cookTimeMinutes,servings,difficulty,rating', {}, token)
-  return data.recipes
+export async function getRecipes(): Promise<Recipe[]> {
+  const data = await request<{ recipes: ApiRecipe[] }>(
+    '/recipes?limit=50&skip=0&select=id,name,cuisine,image,prepTimeMinutes,cookTimeMinutes,servings,difficulty,rating',
+  )
+  return data.recipes.map(toRecipe)
 }
 
-export async function searchRecipes(query: string, token: string): Promise<Recipe[]> {
-  const data = await request<{ recipes: Recipe[] }>(`/recipes/search?q=${encodeURIComponent(query)}&limit=30`, {}, token)
-  return data.recipes
+export async function searchRecipes(query: string): Promise<Recipe[]> {
+  const data = await request<{ recipes: ApiRecipe[] }>(`/recipes/search?q=${encodeURIComponent(query)}&limit=50`)
+  return data.recipes.map(toRecipe)
 }
 
-export async function addRecipe(data: RecipeFormData, token: string): Promise<Recipe> {
-  return request<Recipe>('/recipes/add', {
+export async function addRecipe(data: RecipeFormData): Promise<ApiRecipe> {
+  return request<ApiRecipe>('/recipes/add', {
     method: 'POST',
     body: JSON.stringify(data),
-  }, token)
+  })
 }
 
-export async function updateRecipe(id: number, data: RecipeFormData, token: string): Promise<Recipe> {
-  return request<Recipe>(`/recipes/${id}`, {
+export async function updateRecipe(id: number, data: RecipeFormData): Promise<Partial<ApiRecipe>> {
+  return request<Partial<ApiRecipe>>(`/recipes/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
-  }, token)
+  })
 }
 
-export async function deleteRecipe(id: number, token: string): Promise<{ isDeleted?: boolean }> {
-  return request<{ isDeleted?: boolean }>(`/recipes/${id}`, { method: 'DELETE' }, token)
+export async function deleteRecipe(id: number): Promise<{ isDeleted?: boolean }> {
+  return request<{ isDeleted?: boolean }>(`/recipes/${id}`, { method: 'DELETE' })
 }
 
 export function getPrice(recipe: Pick<Recipe, 'prepTimeMinutes' | 'cookTimeMinutes'>): number {
   return 15 + 0.5 * ((recipe.prepTimeMinutes || 0) + (recipe.cookTimeMinutes || 0))
+}
+
+export async function getMe(token: string): Promise<LoginResponse> {
+  return request<LoginResponse>('/auth/me', {}, token)
 }
